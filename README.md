@@ -23,8 +23,8 @@ This repository contains a Python script that reads a JSON configuration, proces
 
 ### Step 1: Clone the Repository
 ```bash
-git clone <repository_url>
-cd <repository_directory>
+git clone https://github.com/ns-0437/JSON-Server-Builder
+cd JSON-server-builder
 ```
 
 ### Step 2: Install Python Requirements
