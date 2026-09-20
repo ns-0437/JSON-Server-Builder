@@ -45,5 +45,23 @@ class DanglingTargetTests(unittest.TestCase):
             routes_for(nodes)
 
 
+class CorsTests(unittest.TestCase):
+    def generate(self, origins):
+        import tempfile, os
+        out = os.path.join(tempfile.mkdtemp(), "server.js")
+        flags = {"cors": True, "logging": False, "origins": origins}
+        script.generate_server_js({}, flags, output_file=out)
+        with open(out, encoding="utf-8") as f:
+            return f.read()
+
+    def test_wildcard_origin_is_kept(self):
+        self.assertIn('cors({ origin: "*" })', self.generate(["*"]))
+
+    def test_configured_origins_are_used(self):
+        code = self.generate(["https://a.example", "https://b.example"])
+        self.assertIn('cors({ origin: ["https://a.example", "https://b.example"] })', code)
+        self.assertNotIn('origin: "*"', code)
+
+
 if __name__ == "__main__":
     unittest.main()

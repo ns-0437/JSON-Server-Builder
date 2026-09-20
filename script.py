@@ -36,7 +36,7 @@ def traverse_graph(node_map, children):
     Propagate middleware flags along each path and override them if a route explicitly sets them.
     """
     routes = {}
-    global_flags = {"cors": False, "logging": False}
+    global_flags = {"cors": False, "logging": False, "origins": []}
 
     # Find entry nodes (source is None or properties type 'entry')
     entry_nodes = [node for node in node_map.values() if node.get("source") is None or (node.get("properties", {}).get("type") == "entry")]
@@ -63,6 +63,9 @@ def traverse_graph(node_map, children):
         # Update global flags if this node specifies CORS or logging
         if "allowed_origins" in props:
             global_flags["cors"] = True
+            for origin in props["allowed_origins"]:
+                if origin not in global_flags["origins"]:
+                    global_flags["origins"].append(origin)
         if props.get("log_requests"):
             global_flags["logging"] = True
 
@@ -117,7 +120,10 @@ def generate_server_js(routes, global_flags, output_file="server.js"):
     
     # Global middleware
     if global_flags["cors"]:
-        lines.append('app.use(cors({ origin: "*" }));')
+        origins = global_flags.get("origins") or ["*"]
+        # Honour the configured allow-list; only fall back to "*" when the config asks for it.
+        origin_js = '"*"' if "*" in origins else json.dumps(origins)
+        lines.append(f'app.use(cors({{ origin: {origin_js} }}));')
     lines.append('app.use(express.json());')
     lines.append('')
 
