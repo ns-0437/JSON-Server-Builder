@@ -18,5 +18,25 @@ class CycleTests(unittest.TestCase):
         self.assertEqual(list(routes), ["/a"])
 
 
+class GeneratedCodeTests(unittest.TestCase):
+    def generate(self, routes):
+        import tempfile, os
+        out = os.path.join(tempfile.mkdtemp(), "server.js")
+        script.generate_server_js(routes, {"cors": False, "logging": False}, output_file=out)
+        with open(out, encoding="utf-8") as f:
+            return f.read()
+
+    def test_quotes_in_endpoint_and_name_are_escaped(self):
+        routes = {'/x"});process.exit(1);//': {"method": "get", "name": 'a"b', "auth": False, "admin": False}}
+        code = self.generate(routes)
+        self.assertIn('app.get("/x\\"});process.exit(1);//"', code)
+        self.assertIn('"Response from a\\"b"', code)
+
+    def test_unknown_method_is_rejected(self):
+        routes = {"/x": {"method": "get); evil(", "name": "n", "auth": False, "admin": False}}
+        with self.assertRaises(ValueError):
+            self.generate(routes)
+
+
 if __name__ == "__main__":
     unittest.main()
