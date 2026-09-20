@@ -3,6 +3,9 @@ import os
 from collections import defaultdict, deque
 
 # --- Helper functions ---
+ALLOWED_METHODS = {"get", "post", "put", "patch", "delete", "head", "options"}
+
+
 def load_config(json_file):
     """Load the JSON configuration from file."""
     with open(json_file, "r") as f:
@@ -171,7 +174,11 @@ def generate_server_js(routes, global_flags, output_file="server.js"):
             message = "Blogs list"
         else:
             message = f"Response from {name}"
-        lines.append(f'app.{method}("{endpoint}", {mws_str}(req, res) => res.json({{ message: "{message}" }}));')
+        if method not in ALLOWED_METHODS:
+            raise ValueError(f"unsupported HTTP method {method!r} for endpoint {endpoint!r}")
+        # json.dumps yields a valid JS string literal, so quotes or code in a config value
+        # cannot break out of the generated string.
+        lines.append(f'app.{method}({json.dumps(endpoint)}, {mws_str}(req, res) => res.json({{ message: {json.dumps(message)} }}));')
     lines.append('')
     lines.append('app.listen(3000, () => console.log("Server running on port 3000"));')
     
