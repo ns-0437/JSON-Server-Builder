@@ -38,5 +38,12 @@ class GeneratedCodeTests(unittest.TestCase):
             self.generate(routes)
 
 
+class DanglingTargetTests(unittest.TestCase):
+    def test_missing_target_gives_a_clear_error(self):
+        nodes = [{"id": "1", "source": None, "target": "99", "properties": {}}]
+        with self.assertRaisesRegex(ValueError, "'99'.*not defined"):
+            routes_for(nodes)
+
+
 if __name__ == "__main__":
     unittest.main()

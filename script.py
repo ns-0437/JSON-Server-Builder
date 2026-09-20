@@ -96,6 +96,8 @@ def traverse_graph(node_map, children):
         
         # Enqueue children nodes
         for child_id in children.get(cur_id, []):
+            if child_id not in node_map:
+                raise ValueError(f"node {cur_id!r} targets {child_id!r}, which is not defined in the config")
             # Copy flags so each branch gets its own
             queue.append((child_id, flags.copy()))
     
@@ -198,9 +200,12 @@ def main():
         print("No nodes found in the configuration.")
         return
     
-    node_map, children = build_graph(nodes)
-    routes, global_flags = traverse_graph(node_map, children)
-    generate_server_js(routes, global_flags,output_file="./server.js")
+    try:
+        node_map, children = build_graph(nodes)
+        routes, global_flags = traverse_graph(node_map, children)
+        generate_server_js(routes, global_flags,output_file="./server.js")
+    except ValueError as exc:
+        raise SystemExit(f"Error: {exc}")
 
 if __name__ == "__main__":
     main()
