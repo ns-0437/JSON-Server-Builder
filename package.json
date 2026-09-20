@@ -1,0 +1,15 @@
+{
+  "name": "json-server-builder",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Runs the server that script.py generates from config.json",
+  "scripts": {
+    "generate": "python script.py",
+    "start": "node server.js",
+    "test": "python -m unittest"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2"
+  }
+}
