@@ -44,8 +44,16 @@ def traverse_graph(node_map, children):
     for node in entry_nodes:
         queue.append((node["id"], {"auth": False, "admin": False}))
 
+    # A (node, flags) state only needs exploring once: revisiting it would produce the same routes,
+    # and without this a cycle in the config (e.g. a node targeting an ancestor) never terminates.
+    visited = set()
+
     while queue:
         cur_id, flags = queue.popleft()
+        state = (cur_id, flags["auth"], flags["admin"])
+        if state in visited:
+            continue
+        visited.add(state)
         node = node_map[cur_id]
         props = node.get("properties", {})
 
